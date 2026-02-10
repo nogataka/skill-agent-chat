@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Sidebar } from "@/components/sidebar/sidebar";
 import { ChatArea } from "@/components/chat/chat-area";
+import { PreviewProvider } from "@/components/preview/preview-context";
+import { PreviewPanel } from "@/components/preview/preview-panel";
 import { useSkillChat } from "@/hooks/use-skill-chat";
 
 export default function Home() {
@@ -29,37 +31,40 @@ export default function Home() {
   const activeSkill = skills.find((s) => s.id === activeSkillId);
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-white dark:bg-zinc-900">
-      <Sidebar
-        skills={skills}
-        activeSkillId={activeSkillId}
-        onSkillSelect={(id) => {
-          switchSkill(id);
-          setSidebarOpen(false);
-        }}
-        provider={providerInfo}
-        onNewChat={resetChat}
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        conversations={conversations}
-        activeConversationId={activeConversationId}
-        onConversationSelect={(id) => {
-          loadConversation(id);
-          setSidebarOpen(false);
-        }}
-        onConversationDelete={deleteConversation}
-      />
-      <ChatArea
-        messages={messages}
-        input={input}
-        isLoading={isLoading}
-        onInputChange={setInput}
-        onSubmit={handleSubmit}
-        onStop={stop}
-        provider={providerInfo}
-        activeSkill={activeSkill}
-        onMenuClick={() => setSidebarOpen(true)}
-      />
-    </div>
+    <PreviewProvider>
+      <div className="flex h-dvh overflow-hidden bg-white dark:bg-zinc-900">
+        <Sidebar
+          skills={skills}
+          activeSkillId={activeSkillId}
+          onSkillSelect={(id) => {
+            switchSkill(id);
+            setSidebarOpen(false);
+          }}
+          provider={providerInfo}
+          onNewChat={resetChat}
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          conversations={conversations}
+          activeConversationId={activeConversationId}
+          onConversationSelect={(id) => {
+            loadConversation(id);
+            setSidebarOpen(false);
+          }}
+          onConversationDelete={deleteConversation}
+        />
+        <ChatArea
+          messages={messages}
+          input={input}
+          isLoading={isLoading}
+          onInputChange={setInput}
+          onSubmit={handleSubmit}
+          onStop={stop}
+          provider={providerInfo}
+          activeSkill={activeSkill}
+          onMenuClick={() => setSidebarOpen(true)}
+        />
+        <PreviewPanel />
+      </div>
+    </PreviewProvider>
   );
 }

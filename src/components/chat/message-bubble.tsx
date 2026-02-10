@@ -1,38 +1,12 @@
 "use client";
 
+import { useMemo } from "react";
 import { User, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ToolCallDisplay } from "./tool-call-display";
-import { HtmlPreview } from "./html-preview";
+import { CodeBlockCard } from "./html-preview";
 import ReactMarkdown, { type Components } from "react-markdown";
 import type { UIMessage } from "ai";
-
-const markdownComponents: Components = {
-  pre({ children }) {
-    // Extract the <code> element from <pre><code>...</code></pre>
-    if (
-      children &&
-      typeof children === "object" &&
-      "props" in (children as React.ReactElement)
-    ) {
-      const codeEl = children as React.ReactElement<{
-        className?: string;
-        children?: string;
-      }>;
-      const className = codeEl.props.className ?? "";
-      const lang = className.replace("language-", "");
-      const code =
-        typeof codeEl.props.children === "string"
-          ? codeEl.props.children
-          : "";
-
-      if (lang === "html" && code.trim()) {
-        return <HtmlPreview code={code} />;
-      }
-    }
-    return <pre>{children}</pre>;
-  },
-};
 
 interface MessageBubbleProps {
   message: UIMessage;
@@ -56,6 +30,36 @@ function isToolPart(
 
 export function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === "user";
+
+  // Define inside component so CodeBlockCard can access PreviewContext
+  const markdownComponents: Components = useMemo(
+    () => ({
+      pre({ children }) {
+        if (
+          children &&
+          typeof children === "object" &&
+          "props" in (children as React.ReactElement)
+        ) {
+          const codeEl = children as React.ReactElement<{
+            className?: string;
+            children?: string;
+          }>;
+          const className = codeEl.props.className ?? "";
+          const lang = className.replace("language-", "");
+          const code =
+            typeof codeEl.props.children === "string"
+              ? codeEl.props.children
+              : "";
+
+          if (code.trim()) {
+            return <CodeBlockCard code={code} language={lang} />;
+          }
+        }
+        return <pre>{children}</pre>;
+      },
+    }),
+    []
+  );
 
   return (
     <div
@@ -103,7 +107,6 @@ export function MessageBubble({ message }: MessageBubbleProps) {
               input?: Record<string, unknown>;
               output?: unknown;
             };
-            // Extract tool name from type: "tool-analyzeText" -> "analyzeText"
             const toolName = toolPart.type.startsWith("tool-")
               ? toolPart.type.slice(5)
               : (toolPart as { toolName?: string }).toolName ?? toolPart.type;
